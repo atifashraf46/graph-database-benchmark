@@ -1,10 +1,13 @@
 import csv
 import os
 
-DATASET_DIR = "dataset"
+# Get absolute path to the project root
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 
-PROFILES_FILE = os.path.join(DATASET_DIR, "soc-pokec-profiles.txt")
-RELATIONSHIPS_FILE = os.path.join(DATASET_DIR, "soc-pokec-relationships.txt")
+# Sample dataset files
+PROFILES_FILE = os.path.join(DATASET_DIR, "sample_profiles.txt")
+RELATIONSHIPS_FILE = os.path.join(DATASET_DIR, "sample_relationships.txt")
 
 
 def load_profiles(limit=None):
@@ -18,7 +21,7 @@ def load_profiles(limit=None):
         reader = csv.reader(file, delimiter="\t")
 
         for i, row in enumerate(reader):
-            if limit and i >= limit:
+            if limit is not None and i >= limit:
                 break
 
             if len(row) == 0:
@@ -43,7 +46,7 @@ def load_relationships(limit=None):
         reader = csv.reader(file, delimiter="\t")
 
         for i, row in enumerate(reader):
-            if limit and i >= limit:
+            if limit is not None and i >= limit:
                 break
 
             if len(row) < 2:

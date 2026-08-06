@@ -1,4 +1,4 @@
-from neo4j import GraphDatabase
+from gqlalchemy import Memgraph
 from databases.base import BaseDatabase
 
 
@@ -8,24 +8,38 @@ class MemgraphDB(BaseDatabase):
         self.uri = uri
         self.user = user
         self.password = password
-        self.driver = None
+        self.db = None
 
     def connect(self):
-        self.driver = GraphDatabase.driver(
-            self.uri,
-            auth=(self.user, self.password),
-            
+        host = self.uri.replace("bolt+s://", "").replace("bolt://", "")
+        if ":" in host:
+            host, port = host.split(":")
+            port = int(port)
+        else:
+            port = 7687
+
+        self.db = Memgraph(
+            host=host,
+            port=port,
+            username=self.user,
+            password=self.password,
+            encrypted=True,
         )
 
     def execute(self, query, parameters=None):
-        with self.driver.session() as session:
-            result = session.run(query, parameters or {})
-            return [record.data() for record in result]
+        if parameters:
+            for key, value in parameters.items():
+                query = query.replace(f"${key}", f'"{value}"')
+
+        result = self.db.execute_and_fetch(query)
+        return list(result)
 
     def execute_write(self, query, parameters=None):
-        with self.driver.session() as session:
-            session.run(query, parameters or {})
+        if parameters:
+            for key, value in parameters.items():
+                query = query.replace(f"${key}", f'"{value}"')
+
+        self.db.execute(query)
 
     def close(self):
-        if self.driver:
-            self.driver.close()
+        pass

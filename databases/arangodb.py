@@ -11,7 +11,10 @@ class ArangoDB(BaseDatabase):
         self.db = None
 
     def connect(self):
-        client = ArangoClient(hosts=self.host)
+        client = ArangoClient(
+            hosts=self.host,
+            verify_override="cert_file.crt"
+        )
 
         self.db = client.db(
             "_system",
@@ -19,13 +22,15 @@ class ArangoDB(BaseDatabase):
             password=self.password
         )
 
+        print("Connected to ArangoDB")
+        print("Version:", self.db.version())
+
     def execute(self, query, parameters=None):
-        return list(
-            self.db.aql.execute(
-                query,
-                bind_vars=parameters or {}
-            )
+        cursor = self.db.aql.execute(
+            query,
+            bind_vars=parameters or {}
         )
+        return list(cursor)
 
     def execute_write(self, query, parameters=None):
         self.db.aql.execute(
