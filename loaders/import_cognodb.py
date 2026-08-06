@@ -1,0 +1,52 @@
+from config import DATABASES
+from databases.cognodb import CognoDB
+from loaders.load_dataset import load_profiles, load_relationships
+
+db = CognoDB(
+    DATABASES["CognoDB"]["uri"],
+    DATABASES["CognoDB"]["user"],
+    DATABASES["CognoDB"]["password"],
+)
+
+db.connect()
+
+print("Connected to CognoDB")
+
+# Import Users
+profiles = load_profiles(limit=1000)
+
+print(f"Importing {len(profiles)} users...")
+
+for profile in profiles:
+    db.execute_write(
+        """
+        MERGE (u:User {id:$id})
+        """,
+        {
+            "id": profile["id"]
+        }
+    )
+
+print("Users imported successfully!")
+
+# Import Relationships
+relationships = load_relationships(limit=500)
+
+print(f"Importing {len(relationships)} relationships...")
+
+for source, target in relationships:
+    db.execute_write(
+        """
+        MATCH (a:User {id:$source})
+        MATCH (b:User {id:$target})
+        MERGE (a)-[:FRIEND]->(b)
+        """,
+        {
+            "source": source,
+            "target": target
+        }
+    )
+
+print("Relationships imported successfully!")
+
+db.close()
