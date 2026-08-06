@@ -1,53 +1,57 @@
-# Graph Database Cloud Benchmark
+# Graph Database Benchmark Framework
 
-## Overview
+A modular benchmarking framework developed to evaluate the performance of multiple graph database systems using a common dataset and standardized workloads.
 
-This project benchmarks managed graph databases using a common dataset and identical workloads. The goal is to evaluate the performance of different cloud graph database platforms under the same benchmarking methodology.
-
-This project was developed as part of the WEXA AI Graph Database Cloud Benchmark Assignment.
+This project benchmarks graph databases by measuring execution time for common graph operations such as node lookup, graph traversal, aggregation, and mixed workloads. Results are collected automatically and exported as CSV files for comparison and analysis.
 
 ---
 
-## Databases Compared
+## Supported Graph Databases
 
-- CognoDB Cloud
-- Neo4j AuraDB
+The framework currently supports the following graph databases:
 
-> The project is designed with a modular architecture, making it easy to extend support for additional graph databases such as Memgraph, FalkorDB, and ArangoDB.
+- Neo4j
+- CognoDB
+- Memgraph
+- ArangoDB
 
----
-
-## Benchmark Workloads
-
-The benchmark suite measures the following workloads:
-
-### Connection Benchmark
-- Database connection latency
-
-### Lookup Benchmark
-- Point lookup queries
-
-### Traversal Benchmark
-- Graph traversal queries
-
-### Aggregation Benchmark
-- Count and aggregation queries
-
-### Mixed Workload Benchmark
-- Combined read/write operations
+Each database is implemented through a common interface, making the framework easily extensible for additional graph databases.
 
 ---
 
 ## Project Structure
 
 ```
-graph-database-benchmark/
+graph-benchmark-clean/
 │
 ├── databases/
-├── dataset/
+│   ├── base.py
+│   ├── neo4j.py
+│   ├── cognodb.py
+│   ├── memgraph.py
+│   └── arangodb.py
+│
 ├── loaders/
-├── utils/
+│   ├── load_dataset.py
+│   ├── import_neo4j.py
+│   ├── import_memgraph.py
+│   ├── import_cognodb.py
+│   └── import_arangodb.py
+│
 ├── workloads/
+│   ├── lookup.py
+│   ├── traversal.py
+│   ├── aggregation.py
+│   ├── mixed.py
+│   ├── lookup_arango.py
+│   ├── traversal_arango.py
+│   ├── aggregation_arango.py
+│   └── mixed_arango.py
+│
+├── dataset/
+│
+├── results/
+│
 ├── benchmark.py
 ├── config.py
 ├── requirements.txt
@@ -56,45 +60,100 @@ graph-database-benchmark/
 
 ---
 
+## Features
+
+- Modular benchmark architecture
+- Support for multiple graph databases
+- Common benchmark interface
+- Automated dataset loading
+- Automated benchmark execution
+- CSV result generation
+- Easily extensible database adapters
+
+---
+
+## Benchmark Workloads
+
+The framework evaluates each database using four workloads.
+
+### 1. Lookup Benchmark
+
+Measures the execution time required to retrieve a user node by its ID.
+
+Example:
+
+```
+MATCH (u:User {id:$id})
+RETURN u
+```
+
+---
+
+### 2. Traversal Benchmark
+
+Measures the execution time required to traverse friendship relationships from a starting user.
+
+---
+
+### 3. Aggregation Benchmark
+
+Measures the performance of aggregate operations such as counting all user nodes.
+
+---
+
+### 4. Mixed Benchmark
+
+Executes a combination of:
+
+- Lookup
+- Traversal
+- Aggregation
+
+This simulates a more realistic workload.
+
+---
+
 ## Dataset
 
-The benchmark uses a sampled subset of the SNAP Pokec social network dataset.
+The framework imports user profiles and friendship relationships into each supported graph database.
 
-The complete dataset is intentionally not included in this repository because of GitHub file size limitations.
+Dataset files include:
 
-Sample dataset files are included for testing.
+- User profiles
+- User relationships
+
+The same dataset format is used across all databases to ensure consistent benchmarking.
+
+---
+
+## Technologies Used
+
+- Python 3
+- Neo4j Python Driver
+- ArangoDB Python Driver
+- Memgraph
+- CognoDB
+- CSV
+- Git
+- GitHub
 
 ---
 
 ## Installation
 
-Clone the repository
+Clone the repository.
 
 ```bash
 git clone https://github.com/atifashraf46/graph-database-benchmark.git
 ```
 
-Move into the project
+Move into the project directory.
 
 ```bash
 cd graph-database-benchmark
 ```
 
-Create a virtual environment
-
-```bash
-python -m venv venv
-```
-
-Activate the environment
-
-Windows
-
-```bash
-venv\Scripts\activate
-```
-
-Install dependencies
+Install dependencies.
 
 ```bash
 pip install -r requirements.txt
@@ -108,7 +167,7 @@ Create a `.env` file containing your database credentials.
 
 Example:
 
-```
+```env
 NEO4J_URI=
 NEO4J_USER=
 NEO4J_PASSWORD=
@@ -116,84 +175,110 @@ NEO4J_PASSWORD=
 COGNODB_URI=
 COGNODB_USER=
 COGNODB_PASSWORD=
-```
 
-Do not commit credentials to GitHub.
+MEMGRAPH_URI=
+MEMGRAPH_USER=
+MEMGRAPH_PASSWORD=
+
+ARANGO_URI=
+ARANGO_USER=
+ARANGO_PASSWORD=
+```
 
 ---
 
-## Running the Benchmark
+## Loading Data
 
-Run
+Import the dataset into each database before running benchmarks.
+
+Example:
+
+```bash
+python -m loaders.import_neo4j
+```
+
+Similarly:
+
+```
+python -m loaders.import_memgraph
+
+python -m loaders.import_cognodb
+
+python -m loaders.import_arangodb
+```
+
+---
+
+## Running Benchmarks
+
+Execute:
 
 ```bash
 python benchmark.py
 ```
 
-Benchmark results are exported to
+The benchmark automatically executes:
+
+- Connection Benchmark
+- Lookup Benchmark
+- Traversal Benchmark
+- Aggregation Benchmark
+- Mixed Benchmark
+
+for every supported database.
+
+---
+
+## Results
+
+Benchmark results are automatically exported to:
 
 ```
 results/benchmark_results.csv
 ```
 
----
+Each workload records:
 
-## Methodology
-
-- Same benchmark code used for every database
-- Same dataset
-- Same query workloads
-- Multiple benchmark iterations
-- Execution time measured in milliseconds
-- Statistics include:
-  - Average
-  - Minimum
-  - Maximum
-  - Median
+- Number of runs
+- Average execution time
+- Minimum execution time
+- Maximum execution time
+- Median execution time
 
 ---
 
-## Technologies Used
+## Current Benchmark Results
 
-- Python 3
-- Neo4j Python Driver
-- Cypher Query Language
-- CSV
-- Git
-- GitHub
+The project has been successfully benchmarked on:
+
+- Neo4j
+- CognoDB
+- Memgraph
+- ArangoDB
+
+Each database was tested using the same benchmark framework and identical workloads.
 
 ---
 
-## Current Results
+## Design
 
-The benchmark currently reports:
+The framework follows an adapter-based architecture.
 
-- Connection Time
-- Lookup Time
-- Traversal Time
-- Aggregation Time
-- Mixed Workload Time
+Each database inherits from a common `BaseDatabase` interface.
 
-Results are automatically exported as CSV.
+This design allows new graph databases to be integrated with minimal code changes while keeping benchmark logic independent from database-specific implementations.
 
 ---
 
 ## Future Improvements
 
-- Add Memgraph Cloud
-- Add FalkorDB
-- Add ArangoDB
-- Support larger benchmark datasets
-- Concurrent client benchmarking
-- Performance charts
-- p50/p95 latency reporting
-- Resource utilization monitoring
+Possible enhancements include:
 
----
-
-## Notes
-
-This benchmark is intended for educational and evaluation purposes. Results may vary depending on network latency, cloud region, database tier, and system resources.
+- Additional graph database support
+- Larger benchmark datasets
+- Advanced latency metrics
+- Benchmark visualizations
+- Performance analysis dashboards
 
 ---
 
@@ -201,4 +286,13 @@ This benchmark is intended for educational and evaluation purposes. Results may 
 
 **Mohammad Atif Hussain**
 
-WEXA AI Graph Database Benchmark Assignment
+B.Tech Computer Science (Artificial Intelligence & Machine Learning)
+
+GitHub:
+https://github.com/atifashraf46
+
+---
+
+## License
+
+This project was developed for educational and benchmarking purposes.
